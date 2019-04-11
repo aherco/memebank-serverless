@@ -32,7 +32,7 @@ provider:
       - subnet-2772f219
       - subnet-b55824d2
       - subnet-5fbac303
-      - subnet-9fcec2d5      
+      - subnet-9fcec2d5
 
 
 # you can overwrite defaults here
@@ -74,13 +74,13 @@ functions:
           method: post
           cors: true
       - http:
-          path: items/{guild_id}
+          path: items/channel/{channel_id}
           method: get
           cors: true
           parameters:
             paths:
-              guild_id: true
-        
+              channel_id: true
+
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
@@ -115,5 +115,3 @@ functions:
 #    Define function environment variables here
 #    environment:
 #      variable2: value2
-
-

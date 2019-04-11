@@ -62,9 +62,9 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	case "GET":
 		var jsonb []byte
 		var itms []Item
-		gid := request.PathParameters["guild_id"]
+		cid := request.PathParameters["channel_id"]
 
-		db.Where("guild_id = ?", gid).Find(&itms)
+		db.Where("channel_id = ?", cid).Order("created_at asc").Find(&itms)
 		jsonb, _ = json.Marshal(&itms)
 
 		res.Body = string(jsonb)
