@@ -87,6 +87,17 @@ func deleteItemsByMessageID(ctx *lambdarouter.APIGContext) {
 	ctx.Status = 204
 }
 
+func deleteItemByID(ctx *lambdarouter.APIGContext) {
+	db := ConnectDB()
+	db.AutoMigrate(&Item{})
+	iid := ctx.Path["id"]
+
+	db.Delete(Item{}, "id = ?", iid)
+
+	ctx.Body = []byte("Delete successful")
+	ctx.Status = 204
+}
+
 func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var (
 		cfg lambdarouter.APIGRouterConfig
@@ -105,6 +116,7 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	r.Post("/", postItems)
 	r.Get("/channel/{channel_id}", getItemsByChannelID)
 	r.Delete("/", deleteItemsByMessageID)
+	r.Delete("/{id}", deleteItemByID)
 
 	return r.Respond(), nil
 }
