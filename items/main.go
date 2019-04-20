@@ -12,11 +12,16 @@ type Item struct {
 	gorm.Model
 	GuildID   string `json:"guild_id"`
 	ChannelID string `json:"channel_id"`
+	MessageID string `json:"message_id"`
 	Content   string `json:"content"`
 }
 
 type ItemBatch struct {
 	Batch []Item `json:"batch"`
+}
+
+type DeleteBatch struct {
+	Batch []string `json:"batch"`
 }
 
 func ConnectDB() *gorm.DB {
@@ -64,11 +69,27 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		var itms []Item
 		cid := request.PathParameters["channel_id"]
 
-		db.Where("channel_id = ?", cid).Order("created_at asc").Find(&itms)
+		db.Where("channel_id = ?", cid).Order("created_at desc").Find(&itms)
 		jsonb, _ = json.Marshal(&itms)
 
 		res.Body = string(jsonb)
 		res.StatusCode = 200
+		return res, nil
+
+	case "DELETE":
+		var jsonb []byte
+		var dib DeleteBatch
+		_ = json.Unmarshal([]byte(request.Body), &dib)
+
+		for _, d := range dib.Batch {
+			db.Delete(Item{}, "message_id = ?", d)
+		}
+
+		jsonb, _ = json.Marshal(&dib)
+
+		res.Body = string(jsonb)
+		res.StatusCode = 204
+
 		return res, nil
 	}
 
