@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"github.com/aherco/lambdarouter"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/jinzhu/gorm"
@@ -37,65 +39,74 @@ func ConnectDB() *gorm.DB {
 	return db
 }
 
-func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var res events.APIGatewayProxyResponse
+func postItems(ctx *lambdarouter.APIGContext) {
 	db := ConnectDB()
 	db.AutoMigrate(&Item{})
 
-	res.Headers = map[string]string{
+	var jsonb []byte
+	var ib ItemBatch
+	_ = json.Unmarshal(ctx.Body, &ib)
+
+	for _, itm := range ib.Batch {
+		db.Create(&itm)
+	}
+
+	jsonb, _ = json.Marshal(&ib)
+
+	ctx.Body = jsonb
+	ctx.Status = 201
+}
+
+func getItemsByChannelID(ctx *lambdarouter.APIGContext) {
+	db := ConnectDB()
+	db.AutoMigrate(&Item{})
+
+	var jsonb []byte
+	var itms []Item
+	cid := ctx.Path["channel_id"]
+
+	db.Where("channel_id = ?", cid).Order("created_at desc").Find(&itms)
+	jsonb, _ = json.Marshal(&itms)
+
+	ctx.Body = jsonb
+	ctx.Status = 200
+}
+
+func deleteItemsByMessageID(ctx *lambdarouter.APIGContext) {
+	db := ConnectDB()
+	db.AutoMigrate(&Item{})
+
+	var dib DeleteBatch
+	_ = json.Unmarshal([]byte(ctx.Body), &dib)
+
+	for _, d := range dib.Batch {
+		db.Delete(Item{}, "message_id = ?", d)
+	}
+
+	ctx.Body = []byte("Delete successful")
+	ctx.Status = 204
+}
+
+func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var (
+		cfg lambdarouter.APIGRouterConfig
+		r   *lambdarouter.APIGRouter
+	)
+
+	cfg.Context = context.Background()
+	cfg.Request = &request
+	cfg.Prefix = "/items"
+	cfg.Headers = map[string]string{
 		"Access-Control-Allow-Origin":      "*",
 		"Access-Control-Allow-Credentials": "true",
 	}
 
-	switch request.HTTPMethod {
+	r = lambdarouter.NewAPIGRouter(&cfg)
+	r.Post("/", postItems)
+	r.Get("/channel/{channel_id}", getItemsByChannelID)
+	r.Delete("/", deleteItemsByMessageID)
 
-	case "POST":
-		var jsonb []byte
-		var ib ItemBatch
-		_ = json.Unmarshal([]byte(request.Body), &ib)
-
-		for _, itm := range ib.Batch {
-			db.Create(&itm)
-		}
-
-		jsonb, _ = json.Marshal(&ib)
-
-		res.Body = string(jsonb)
-		res.StatusCode = 201
-		return res, nil
-
-	case "GET":
-		var jsonb []byte
-		var itms []Item
-		cid := request.PathParameters["channel_id"]
-
-		db.Where("channel_id = ?", cid).Order("created_at desc").Find(&itms)
-		jsonb, _ = json.Marshal(&itms)
-
-		res.Body = string(jsonb)
-		res.StatusCode = 200
-		return res, nil
-
-	case "DELETE":
-		var jsonb []byte
-		var dib DeleteBatch
-		_ = json.Unmarshal([]byte(request.Body), &dib)
-
-		for _, d := range dib.Batch {
-			db.Delete(Item{}, "message_id = ?", d)
-		}
-
-		jsonb, _ = json.Marshal(&dib)
-
-		res.Body = string(jsonb)
-		res.StatusCode = 204
-
-		return res, nil
-	}
-
-	res.Body = "FAILED"
-	res.StatusCode = 420
-	return res, nil
+	return r.Respond(), nil
 }
 
 func main() {

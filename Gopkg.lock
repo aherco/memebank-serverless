@@ -2,6 +2,22 @@
 
 
 [[projects]]
+  digest = "1:e0db22c04ff12f3aa079a2401b0ff81cce8b58ef6a3c8a6e5ea7b5383004866e"
+  name = "github.com/aherco/lambdarouter"
+  packages = ["."]
+  pruneopts = ""
+  revision = "ada0c0871a2585b49a847e4bf2202aba338f6533"
+  version = "v0.0.6-alpha"
+
+[[projects]]
+  branch = "master"
+  digest = "1:5680f8c40e48f07cb77aece3165a866aaf8276305258b3b70db8ec7ad6ddb78d"
+  name = "github.com/armon/go-radix"
+  packages = ["."]
+  pruneopts = ""
+  revision = "1a2de0c21c94309923825da3df33a4381872c795"
+
+[[projects]]
   digest = "1:c7d6e6564219e2beb7dbb2336ca1fb0e5e7730449958bd4a1f63591ac87fbd36"
   name = "github.com/aws/aws-lambda-go"
   packages = [
@@ -50,6 +66,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/aherco/lambdarouter",
     "github.com/aws/aws-lambda-go/events",
     "github.com/aws/aws-lambda-go/lambda",
     "github.com/jinzhu/gorm",
