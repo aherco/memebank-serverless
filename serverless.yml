@@ -18,26 +18,30 @@ service: memebank-serverless # NOTE: update this with your service name
 # frameworkVersion: "=X.X.X"
 frameworkVersion: ">=1.28.0 <2.0.0"
 
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  environment:
+    HOST:
+      dev: "memebankdev.c5atqkcqtyth.us-west-1.rds.amazonaws.com"
+
 provider:
   name: aws
   runtime: go1.x
   timeout: 20
 
+  stage: dev
+  region: us-west-1
+
   vpc:
     securityGroupIds:
-      - sg-00cb095b9c880a251
+      - sg-073a63da942248122
+
     subnetIds:
-      - subnet-fabdc6d4
-      - subnet-73093f7c
-      - subnet-2772f219
-      - subnet-b55824d2
-      - subnet-5fbac303
-      - subnet-9fcec2d5
+      - subnet-d7df30b1
+      - subnet-931d26c8
 
-
-# you can overwrite defaults here
-#  stage: dev
-#  region: us-east-1
+  environment:
+    HOST: ${self:custom.environment.HOST.${self:custom.stage}}
 
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:

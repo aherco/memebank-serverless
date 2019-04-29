@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/aherco/lambdarouter"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"os"
 )
 
 type Item struct {
@@ -29,7 +31,10 @@ type DeleteBatch struct {
 func ConnectDB() *gorm.DB {
 	db, err := gorm.Open(
 		"postgres",
-		"host=memebankdb.cmjoxuixlefr.us-east-1.rds.amazonaws.com port=5432 user=aherco dbname=membankdb password=!1qwerty",
+		fmt.Sprintf(
+			"host=%s port=5432 user=aherco dbname=postgres password=!1qwerty",
+			os.Getenv("HOST"),
+		),
 	)
 
 	if err != nil {
