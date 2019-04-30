@@ -21,8 +21,9 @@ frameworkVersion: ">=1.28.0 <2.0.0"
 custom:
   stage: ${opt:stage, self:provider.stage}
   environment:
-    HOST:
-      dev: "memebankdev.c5atqkcqtyth.us-west-1.rds.amazonaws.com"
+    DBNAME:
+      dev: "memebankdev"
+      prod: "memebankprod"
 
 provider:
   name: aws
@@ -34,14 +35,15 @@ provider:
 
   vpc:
     securityGroupIds:
-      - sg-073a63da942248122
+      - sg-06ccc26934e5e6001 
 
     subnetIds:
       - subnet-d7df30b1
       - subnet-931d26c8
 
   environment:
-    HOST: ${self:custom.environment.HOST.${self:custom.stage}}
+    HOST: "memebankdev.c5atqkcqtyth.us-west-1.rds.amazonaws.com"
+    DBNAME: ${self:custom.environment.DBNAME.${self:custom.stage}}
 
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
