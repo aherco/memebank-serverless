@@ -17,6 +17,7 @@ type Item struct {
 	GuildID   string `json:"guild_id"`
 	ChannelID string `json:"channel_id"`
 	MessageID string `json:"message_id"`
+	Type      string `json:"type"`
 	Content   string `json:"content"`
 }
 
