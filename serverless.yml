@@ -23,7 +23,7 @@ custom:
   environment:
     DBNAME:
       dev: "memebankdev"
-      prod: "memebankprod"
+      prod: "postgres"
 
 provider:
   name: aws
