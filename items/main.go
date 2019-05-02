@@ -97,9 +97,11 @@ func deleteItemsByMessageID(ctx *lambdarouter.APIGContext) {
 func deleteItemByID(ctx *lambdarouter.APIGContext) {
 	db := ConnectDB()
 	db.AutoMigrate(&Item{})
-	iid := ctx.Path["id"]
 
-	db.Delete(Item{}, "id = ?", iid)
+	iid := ctx.Path["id"]
+	mid := ctx.Path["message_id"]
+
+	db.Delete(Item{}, "id = ? AND message_id = ?", iid, mid)
 
 	ctx.Body = []byte("Delete successful")
 	ctx.Status = 204

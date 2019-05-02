@@ -92,7 +92,7 @@ functions:
           cors: true
 
       - http:
-          path: items/{id}
+          path: items/{id}/{message_id}
           method: delete
           cors: true
 
