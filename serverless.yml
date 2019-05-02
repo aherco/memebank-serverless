@@ -24,6 +24,9 @@ custom:
     DBNAME:
       dev: "memebankdev"
       prod: "postgres"
+    ORIGIN:
+      dev: "*"
+      prod: "http://www.memebank.me"
 
 provider:
   name: aws
@@ -44,6 +47,7 @@ provider:
   environment:
     HOST: "memebankdev.c5atqkcqtyth.us-west-1.rds.amazonaws.com"
     DBNAME: ${self:custom.environment.DBNAME.${self:custom.stage}}
+    ORIGIN: ${self:custom.environment.ORIGIN.${self:custom.stage}}
 
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:

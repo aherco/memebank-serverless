@@ -101,7 +101,7 @@ func deleteItemByID(ctx *lambdarouter.APIGContext) {
 	iid := ctx.Path["id"]
 	mid := ctx.Path["message_id"]
 
-	db.Delete(Item{}, "id = ? AND message_id = ?", iid, mid)
+	db.Where("id = ? AND message_id = ?", iid, mid).Delete(Item{})
 
 	ctx.Body = []byte("Delete successful")
 	ctx.Status = 204
@@ -117,7 +117,7 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	cfg.Request = &request
 	cfg.Prefix = "/items"
 	cfg.Headers = map[string]string{
-		"Access-Control-Allow-Origin":      "*",
+		"Access-Control-Allow-Origin":      os.Getenv("ORIGIN"),
 		"Access-Control-Allow-Credentials": "true",
 	}
 
@@ -125,7 +125,7 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	r.Post("/", postItems)
 	r.Get("/channel/{channel_id}", getItemsByChannelID)
 	r.Delete("/", deleteItemsByMessageID)
-	r.Delete("/{id}", deleteItemByID)
+	r.Delete("/{id}/{message_id}", deleteItemByID)
 
 	return r.Respond(), nil
 }
