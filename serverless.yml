@@ -26,7 +26,7 @@ custom:
       prod: "postgres"
     ORIGIN:
       dev: "*"
-      prod: "http://www.memebank.me"
+      prod: "https://www.memebank.me"
 
 provider:
   name: aws
@@ -94,7 +94,6 @@ functions:
           path: items
           method: delete
           cors: true
-
       - http:
           path: items/{id}/{message_id}
           method: delete
