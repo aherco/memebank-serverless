@@ -26,7 +26,7 @@ custom:
       prod: "postgres"
     ORIGIN:
       dev: "*"
-      prod: "http://www.memebank.me"
+      prod: "https://www.memebank.me"
 
 provider:
   name: aws
