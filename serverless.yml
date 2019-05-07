@@ -94,7 +94,6 @@ functions:
           path: items
           method: delete
           cors: true
-
       - http:
           path: items/{id}/{message_id}
           method: delete
