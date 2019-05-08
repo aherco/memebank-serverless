@@ -9,6 +9,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/mitchell/lambdarouter"
 	"os"
+	"strconv"
 )
 
 type Item struct {
@@ -20,6 +21,11 @@ type Item struct {
 	Content   string `json:"content"`
 }
 
+type ItemResponse struct {
+	Count int    `json:"count"`
+	Batch []Item `json:"batch"`
+}
+
 type ItemBatch struct {
 	Batch []Item `json:"batch"`
 }
@@ -28,6 +34,7 @@ type DeleteBatch struct {
 	Batch []string `json:"batch"`
 }
 
+var db *gorm.DB
 var r = lambdarouter.New("items")
 
 func ConnectDB() *gorm.DB {
@@ -48,9 +55,6 @@ func ConnectDB() *gorm.DB {
 }
 
 func postItems(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	db := ConnectDB()
-	db.AutoMigrate(&Item{})
-
 	var res events.APIGatewayProxyResponse
 	var jsonb []byte
 	var ib ItemBatch
@@ -73,16 +77,34 @@ func postItems(req events.APIGatewayProxyRequest) (events.APIGatewayProxyRespons
 }
 
 func getItemsByChannelID(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	db := ConnectDB()
-	db.AutoMigrate(&Item{})
-
 	var res events.APIGatewayProxyResponse
 	var jsonb []byte
-	var itms []Item
-	cid := req.PathParameters["channel_id"]
+	var ir ItemResponse
 
-	db.Where("channel_id = ?", cid).Order("created_at desc").Find(&itms)
-	jsonb, _ = json.Marshal(&itms)
+	cid := req.PathParameters["channel_id"]
+	limit := req.QueryStringParameters["limit"]
+	offset := req.QueryStringParameters["offset"]
+
+	l, err := strconv.Atoi(limit)
+	if err != nil {
+		l = 100
+	}
+
+	o, err := strconv.Atoi(offset)
+	if err != nil {
+		o = 0
+	}
+
+	db.Where("channel_id = ?", cid).
+		Order("created_at desc").
+		Offset(o).
+		Limit(l).
+		Find(&ir.Batch).
+		Offset(-1).
+		Limit(-1).
+		Count(&ir.Count)
+
+	jsonb, _ = json.Marshal(&ir)
 
 	res.Body = string(jsonb)
 	res.StatusCode = 200
@@ -95,9 +117,6 @@ func getItemsByChannelID(req events.APIGatewayProxyRequest) (events.APIGatewayPr
 }
 
 func deleteItemsByMessageID(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	db := ConnectDB()
-	db.AutoMigrate(&Item{})
-
 	var res events.APIGatewayProxyResponse
 	var dib DeleteBatch
 	_ = json.Unmarshal([]byte(req.Body), &dib)
@@ -117,9 +136,6 @@ func deleteItemsByMessageID(req events.APIGatewayProxyRequest) (events.APIGatewa
 }
 
 func deleteItemByID(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	db := ConnectDB()
-	db.AutoMigrate(&Item{})
-
 	var res events.APIGatewayProxyResponse
 	iid := req.PathParameters["id"]
 	mid := req.PathParameters["message_id"]
@@ -137,6 +153,9 @@ func deleteItemByID(req events.APIGatewayProxyRequest) (events.APIGatewayProxyRe
 }
 
 func init() {
+	db = ConnectDB()
+	db.AutoMigrate(&Item{})
+
 	r.Post("", lambda.NewHandler(postItems))
 	r.Get("channel/{channel_id}", lambda.NewHandler(getItemsByChannelID))
 	r.Delete("", lambda.NewHandler(deleteItemsByMessageID))

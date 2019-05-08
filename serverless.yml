@@ -88,6 +88,9 @@ functions:
           method: get
           cors: true
           parameters:
+            querystrings:
+              limit: false
+              offset: false          
             paths:
               channel_id: true
       - http:
@@ -98,6 +101,10 @@ functions:
           path: items/{id}/{message_id}
           method: delete
           cors: true
+          parameters:
+            paths:
+              id: true
+              message_id: true            
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
